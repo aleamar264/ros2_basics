@@ -1,0 +1,6 @@
+string move # Signal that define the movement
+            # "Turn Right"
+            # "Turn Left"
+            # "Stop"
+---
+bool success

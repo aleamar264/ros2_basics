@@ -1,9 +1,8 @@
 from setuptools import setup
-import os 
+import os
 from glob import glob
 
-
-package_name = 'excercise42_pkg'
+package_name = 'services_quiz'
 
 setup(
     name=package_name,
@@ -13,7 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        (os.path.join('share', package_name), glob('launch/*.launch.py'))
+        (os.path.join('share',package_name), glob('launch/*.launch.py')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -24,7 +23,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'excercise42 = excercise42_pkg.excercise42:main'
+            'quiz_server = services_quiz.server:main',
+            'quiz_client = services_quiz.client:main'
         ],
     },
 )

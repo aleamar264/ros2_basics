@@ -40,3 +40,12 @@ class Service(Node):
 
         response.success = True
         response.message = msg
+
+def main(args=None):
+    rclpy.init()
+    moving_right_service = Service()
+    rclpy.spin(moving_right_service)
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
