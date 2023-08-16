@@ -3,6 +3,9 @@ from geometry_msgs.msg import Twist
 from rclpy.node import Node
 import rclpy
 from rclpy.qos import QoSReliabilityPolicy, QoSProfile
+from wall_interfaces.srv import FindWall
+
+from threading import Thread
 
 class WallFollower(Node):
     def __init__(self):
@@ -86,8 +89,35 @@ class WallFollower(Node):
         return cmd
 
 
+
+class ClientFindWall(Node):
+    def __init__(self):
+        super().__init__('client_find_wall')
+        self.cli = self.create_client(
+            FindWall,
+            'find_wall'
+            )
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Service not available, waiting again ...')
+        self.req = FindWall.Resquest()
+    
+    def send_request(self):
+        self.future = self.cli.call(self.req)
+
 def main(args=None):
     rclpy.init(args=args)
+
+    # Client calll async
+    client_findwall = ClientFindWall()
+    spin_thread = Thread(target = rclpy.spin, args=(client_findwall,))
+    spin_thread.start()
+
+    response = client_findwall.send_request()
+    client_findwall.get_logger().info(
+        'The robot had find the wall %s' % (response.wallfound))
+
+    client_findwall.destroy_node()
+    # Loop
     wall_follower = WallFollower()
     rclpy.spin(wall_follower)
     wall_follower.destroy_node()
