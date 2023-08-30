@@ -14,7 +14,9 @@ class FindWallService(Node):
 
     def __init__(self):
         super().__init__('find_wall')
-        self.srv = self.create_service(FindWall, 'find_wall', self.find_wall_callback)
+        self.srv = self.create_service(FindWall, 
+            'find_wall', 
+            self.find_wall_callback)
         self.min_index = None
         self.zero_index = None
         self.groupCB = MutuallyExclusiveCallbackGroup()
@@ -40,9 +42,6 @@ class FindWallService(Node):
             for the front of the robot"""
         self.min_index = msg.ranges.index(min(msg.ranges))
         self.zero_index = msg.ranges[0]
-        self.get_logger().warn(
-            f'Min index is {self.min_index}')
-
 
     def find_wall_callback(self, request, response):
         """
@@ -54,13 +53,14 @@ class FindWallService(Node):
         self.timer = self.create_timer(timer_period_sec=0.5, 
                 callback=self.timer_callback,
                 callback_group=self.groupCB)
-        while 1:
-            sleep(0.2)
-            if self.flag_stop:
-                self.timer.cancel()
-                self.get_logger().info('Wall Found')
-                response.wallfound = True
-                return response
+
+        while not self.flag_stop:
+            rclpy.spin_once(self, timeout_sec=0.2)  # Process callbacks
+
+        self.timer.cancel()
+        self.get_logger().info('Wall Found')
+        response.wallfound = True
+        return response
 
     def timer_callback(self) -> None:
         if self.min_index <= 180 and not self.zero_flag: 

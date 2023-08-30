@@ -4,13 +4,15 @@ from rclpy.qos import QoSReliabilityPolicy, QoSProfile
 from rclpy.action import ActionServer
 from wall_interfaces.action import OdomRecord
 import rclpy
-from geometry_msgs.msg import Point32
+from geometry_msgs.msg import Point
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from math import sqrt, pow
+from functools import partial
 
 
 class OdometryNodeAction(Node):
     def __init__(self):
+        super().__init__('odom_node_server')
         self.cb_group = MutuallyExclusiveCallbackGroup()
         self.sub = self.create_subscription(
         Odometry,
@@ -24,15 +26,17 @@ class OdometryNodeAction(Node):
             OdomRecord, 
             'record_odom',
             self.execute_callback,
-            callback_group=self.cb_group()) 
-        self.last_odom = Point32()
-        self.first_odom = Point32()
+            callback_group=self.cb_group) 
+        self.last_odom = Point()
+        self.first_odom = Point()
         self.total_distance = 0.0
         self.last_x, self.last_y = 0.0, 0.0
-        self.odom_records = []
+        first_measure = Point()
+        first_measure.x, first_measure.y, first_measure.z = 0.0,0.0,0.0
+        self.odom_records = [first_measure]
         self.first_odom_bool = False
         self.odom = Odometry()
-        self.end = False
+        self.end, self.start = False, False
         
     
     def odom_callback(self, msg):
@@ -51,20 +55,24 @@ class OdometryNodeAction(Node):
         self.get_logger().info('Recording Odom ...')
 
         feedback_msg = OdomRecord.Feedback()
-        feedback_msg.current_total = 0.0
+        feedback_msg.current_total = self.total_distance
 
         # Feedback action
 
+        callback_with_args = partial(
+                    self.feedback_callback,
+                    feedback_msg,
+                    goal_handle
+                )
+
         self.feedback_timer = self.create_timer(
                 timer_period_sec=1, 
-                callback=self.feedback_callback(
-                feedback_msg,
-                goal_handle
-                ),
+                callback=callback_with_args,
                 callback_group=self.cb_group)
 
         while not self.end:
-            rclpy.spin_once(self, timeout_sec=1)  # Process callbacks
+            rclpy.spin_once(self)
+            # , timeout_sec=1)  # Process callbacks
 
         self.feedback_timer.cancel()
         goal_handle.succeed()
@@ -78,18 +86,22 @@ class OdometryNodeAction(Node):
         self.odom_records.append(self.last_odom)
         self.total_distance += sqrt(
         pow(
-            (self.last_x - self.last_odom.x), 2),
+            (self.last_x - self.last_odom.x), 2) +
         pow(
             (self.last_y - self.last_odom.y),2))
-        self.last_x, self.last_y = self.last_odom.x, self.last_odom.y
+        self.last_x, self.last_y =  self.odom_records[-1].x, self.odom_records[-1].y
+        feed_msg.current_total = self.total_distance
         goal_handle.publish_feedback(feed_msg)
         distance = sqrt(
         pow(
-            (self.first_odom.x - self.last_odom.x), 2),
+            (self.first_odom.x - self.last_x), 2) +
         pow(
-            (self.first_odom.y - self.last_odom.y),2))
-        if distance < 0.05:
+            (self.first_odom.y - self.last_y),2))
+        self.get_logger().info(f"The actual distance is {distance}")
+        if distance <= 0.14 and self.start:
             self.end = True
+        if not self.start and distance > 0.2:
+            self.start = True
 
 
 def main(args=None):
