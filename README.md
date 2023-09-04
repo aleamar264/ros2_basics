@@ -9,7 +9,8 @@ In this Project we learn the basics of ROS2 using Python.
 All the thing write below is based on the https://app.theconstructsim.com/
 
 
-![](./attachments/ROS%20project%20simulation%20-%20ROS2%20Basics%20Python%20Real%20Robot%20Project%20_%20Robotics%20&%20ROS%20Online%20Courses%20_%20The%20Construct%20and%203%20more%20pages%20-%20Personal%20-%20Microsoft​%20Edge%202023-09-04%2015-58-21.mp4)
+[![Video Screenshot](attachments/cover.png)](attachments/ROS_project_simulation.mp4)
+
 
 
 # Basics and fundamentals II
@@ -270,7 +271,7 @@ The main difference is:
 
 Actions are similar to _**services**_ but with the difference that actions can be cancelled while are executed and this can also give feedback.
 
-![[ROS2/tutorials/attachments/Pasted image 20230617170331.png]]
+![](attachments/20230617170331.png?raw=true)
 
 > The node that provides the Action functionality has to contain an _**Action Server.**_
 
@@ -337,7 +338,7 @@ find_package(rosidl_default_generators REQUIRED)
 The logs have different levels, like:
 
 - DEBUG
-- IN![[ROS2/tutorials/attachments/Pasted image 20230617170359.png]]0617170359.png]]ents/Pasted image 20230617170359.png]]
+- IN![](attachments/20230617170359.png)
 Example of debug (Code level)
 
 ## tf2_tools_view_frames
