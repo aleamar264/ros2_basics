@@ -8,6 +8,7 @@ In this Project we learn the basics of ROS2 using Python.
 
 All the thing write below is based on the https://app.theconstructsim.com/
 
+To see the video, click in the image below
 
 [![Video Screenshot](attachments/cover.png)](attachments/ROS_project_simulation.mp4)
 
